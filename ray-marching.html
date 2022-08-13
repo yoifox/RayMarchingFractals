@@ -1,0 +1,23 @@
+<script src="transformations.js"></script>
+<script src="fractals.js"></script>
+<script src="shader.js"></script>
+<script src="input.js"></script>
+<script src="ray-marching.js"></script>
+<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBULB_GLSL);">
+	<script>
+		function initCanvas() {
+			document.getElementById('rm-canvas').width = window.innerWidth;
+			document.getElementById('rm-canvas').height = window.innerHeight;
+			maxDistance = 1000.0;
+			maxSteps = 256;
+			minDistance = 0.01;
+			setIterations(10);
+			setPower(10);
+			setBailout(50);
+			setColorIterations(10);
+			setSpin(true);
+			colorFunction = DEFAULT_FRACTAL_COLOR;
+		}
+	</script>
+	<canvas id="rm-canvas"></canvas>
+</body>
