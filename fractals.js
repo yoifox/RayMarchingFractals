@@ -34,6 +34,7 @@ const DEFAULT_FRACTAL_COLOR_BRIGHT = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4,
 
 let MANDELBULB_GLSL;
 let SPHERE_SPONGE_GLSL;
+let MANDELBOX_GLSL;
 updateGLSL();
 
 function updateGLSL() {
@@ -89,6 +90,29 @@ float distanceFunction(vec3 position, bool isLight) {
         }
     }
     return d;
+}
+`;
+
+	MANDELBOX_GLSL = 
+`
+vec4 orbitTrap = vec4(MAX_DIST);
+float distanceFunction(vec3 pos, bool isLight) {
+    if(!isLight) orbitTrap = vec4(MAX_DIST);
+    float scale = 2.8;
+    float MR2 = 0.2;
+    vec4 scalevec = vec4(scale, scale, scale, abs(scale)) / MR2;
+    float C1 = abs(scale - 1.0), C2 = pow(abs(scale), float(1 - ${iterations}));
+    vec4 p = vec4(pos.xyz, 1.0), p0 = vec4(pos.xyz, 1.0);
+
+    for (int i = 0; i < ${iterations}; i++) {
+        p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
+        float r2 = dot(p.xyz, p.xyz);
+        if (i < ${colorIterations} && !isLight) 
+			orbitTrap = min(orbitTrap, abs(vec4(p.xyz, r2)));
+        p.xyzw *= clamp(max(MR2/r2, MR2), 0.0, 1.0);
+        p.xyzw = p * scalevec + p0;
+    }
+    return ((length(p.xyz) - C1) / p.w) - C2;
 }
 `;
 }

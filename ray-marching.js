@@ -15,6 +15,13 @@ function compile(distanceFunction) {
 	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_DISTANCE/g, maxDistance.toFixed(5));
 	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DISTANCE/g, minDistance.toFixed(5));
 	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_STEPS/g, maxSteps);
+	fragmentShaderCode = fragmentShaderCode.replace(/#LIGHT_FUNCTION/g, lightFunction);
+	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
+						!shadows ? '' : `
+						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true);
+						if(d < length(lightPos-p)) diffuse *= 0.1;
+						`);
+	
 	canvas = document.getElementById('rm-canvas');
 	gl = canvas.getContext('webgl');
 	if(!gl)

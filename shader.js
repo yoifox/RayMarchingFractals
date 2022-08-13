@@ -3,6 +3,8 @@ let maxSteps = 256;
 let minDistance = 0.01;
 let skyColorFunction = 'vec3(0, 0, 1)';
 let colorFunction = 'vec3(diffuse)';
+let lightFunction = 'vec3(0, 15, 0)';
+let shadows = true;
 
 const vertexShaderCode = `
 precision highp float;
@@ -60,16 +62,14 @@ vec3 getNormal(vec3 p) {
 
 float getLight(vec3 p) { 
 	//vec3 lightPos = vec3(15.0 * sin(uTime), 15.0, 15.0 * cos(uTime));
-	vec3 lightPos = vec3(0, 15, 0);
+	vec3 lightPos = #LIGHT_FUNCTION;
 	vec3 lightDir = normalize(lightPos-p);
 	vec3 normal = getNormal(p);
 	
 	float diffuse = dot(normal, lightDir);
 	diffuse = clamp(diffuse, 0.0, 1.0);
 	
-	// Shadows
-	float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true); 
-	if(d < length(lightPos-p)) diffuse *= 0.1;
+	#SHADOWS
  
 	return diffuse;
 }
