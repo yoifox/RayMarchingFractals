@@ -19,12 +19,54 @@
 			spin = true;
 			reflections = 1;
 			colorFunction = DEFAULT_FRACTAL_COLOR;
+			skyColorFunction = 'skyColor(uv)';
 			extra = `
-			vec3 skyColor(vec2 uv) {
-				return exp2((-uv.y + uRotation.x - length(uv - 0.0) / 4.0) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.2, 0.2);
-			}
-			`;
-			skyColorFunction = 'skyColor(uv)'
+#define VOL_ITERATIONS 14
+#define FORM_U_PARAM 0.53
+#define VOL_STEPS 10
+#define STEP_SIZE 0.1
+#define ZOOM 0.800
+#define TILE 0.850
+#define BRIGHTNESS 0.0015
+#define DARK_MATTER 0.300
+#define DIST_FADING 0.730
+#define SATURATION 0.850
+
+vec3 space(vec2 uv, float time, float speed)
+{
+	uv -= 0.5;
+	vec3 dir = vec3(uv * ZOOM, 1.0);
+	time = time * speed + 0.25;
+	vec3 from = vec3(1.0, 0.5, 0.5);
+	from += vec3(time * 2.0, time, -2.0);
+	float s = 0.1, fade = 1.0;
+	vec3 v = vec3(0.0);
+	for (int r = 0; r < VOL_STEPS; r++) {
+		vec3 p = from + s * dir * 0.5;
+		p = abs(vec3(TILE) - mod(p, vec3(TILE * 2.0)));
+		float pa,a = pa = 0.0;
+		for (int i = 0; i < VOL_ITERATIONS; i++) { 
+			p = abs(p) / dot(p, p) - FORM_U_PARAM;
+			a += abs(length(p) - pa);
+			pa = length(p);
+		}
+		float dm = max(0.0, DARK_MATTER - a * a * 0.001);
+		a *= a*a;
+		if(r > 6) fade *= 1.0 - dm;
+		v += fade;
+		v += vec3(s, s*s, s*s*s*s) * a * BRIGHTNESS * fade;
+		fade *= DIST_FADING;
+		s += STEP_SIZE;
+	}
+	v = mix(vec3(length(v)), v, SATURATION);
+	return v * 0.01;	
+}
+			
+vec3 skyColor(vec2 uv) {
+	return exp2((-uv.y + uRotation.x - length(uv - 0.0) / 4.0) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
+			+ space(vec2(uv.x + uRotation.y, uv.y - uRotation.x), uTime, 0.001);
+}
+`;
 		}
 	</script>
 	<canvas id="rm-canvas"></canvas>
