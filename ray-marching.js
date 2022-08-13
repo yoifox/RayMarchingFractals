@@ -16,6 +16,8 @@ function compile(distanceFunction) {
 	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DISTANCE/g, minDistance.toFixed(5));
 	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_STEPS/g, maxSteps);
 	fragmentShaderCode = fragmentShaderCode.replace(/#LIGHT_FUNCTION/g, lightFunction);
+	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTNESS/g, reflectness);
+	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTIONS/g, reflections);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
 						!shadows ? '' : `
 						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true);

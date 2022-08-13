@@ -5,6 +5,8 @@ let skyColorFunction = 'vec3(0, 0, 1)';
 let colorFunction = 'vec3(diffuse)';
 let lightFunction = 'vec3(0, 15, 0)';
 let shadows = true;
+let reflectness = 0.5;
+let reflections = 0;
 
 const vertexShaderCode = `
 precision highp float;
@@ -73,22 +75,34 @@ float getLight(vec3 p) {
  
 	return diffuse;
 }
- 
+
 void main() {
 	vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
 	
 	vec3 cameraPos = uPosition;
 	vec3 rayDir = normalize(vec3(uv.x, uv.y, 1));
-	rayDir = (vec4(rayDir, 0.0) * rotateXYZ(uRotation)).xyz; 
+	rayDir = (vec4(rayDir, 0.0) * rotateXYZ(uRotation)).xyz;
 	
-	float distance = rayMarch(cameraPos, rayDir, false);
+	vec3 fragColor;
 	
-	vec3 p = cameraPos + rayDir * distance;
-	float diffuse = getLight(p);
-	vec3 color = #COLOR_FUNCTION;
-	if(distance > MAX_DIST)
-		color = #SKY_COLOR_FUNCTION;
-	if(steps == MAX_STEPS) #SKY_COLOR_FUNCTION;
-	gl_FragColor = vec4(color, 1.0);
+	for(int i = 0; i < #REFLECTIONS + 1; i++) {
+		vec3 normal;
+		if(i > 0) {
+			normal = getNormal(cameraPos);
+			rayDir = reflect(rayDir, normal) + uRotation / 2.0;
+		}
+		float distance = rayMarch(i > 0 ? cameraPos + normal * MIN_DIST : cameraPos, rayDir, false);
+		cameraPos += rayDir * distance;
+		float diffuse = getLight(cameraPos);
+		vec3 color = #COLOR_FUNCTION;
+		if(distance > MAX_DIST)
+			color = #SKY_COLOR_FUNCTION;
+		if(steps == MAX_STEPS) 
+			color = #SKY_COLOR_FUNCTION;
+		
+		if(i > 0) fragColor = mix(fragColor, color, #REFLECTNESS);
+		else fragColor = color;
+	}
+	gl_FragColor = vec4(fragColor, 1.0);
 }
 `;
