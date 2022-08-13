@@ -21,7 +21,7 @@
 			colorFunction = DEFAULT_FRACTAL_COLOR;
 			extra = `
 			vec3 skyColor(vec2 uv) {
-				return exp2((-uv.y + uRotation.x) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.2, 0.2);
+				return exp2((-uv.y + uRotation.x - length(uv - 0.0) / 4.0) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.2, 0.2);
 			}
 			`;
 			skyColorFunction = 'skyColor(uv)'
