@@ -2,31 +2,25 @@ let iterations = 7;
 let power = 10;
 let bailout = 50;
 let colorIterations = 3;
-let spin = true;
 
 function setIterations(itr) {
 	iterations = itr;
-	updateGLSL();
+	updateFractalGLSL();
 }
 
 function setPower(pow) {
 	power = pow;
-	updateGLSL();
+	updateFractalGLSL();
 }
 
 function setBailout(bout) {
 	this.bailout = bout;
-	updateGLSL();
+	updateFractalGLSL();
 }
 
 function setColorIterations(colorItr) {
 	colorIterations = colorItr;
-	updateGLSL();
-}
-
-function setSpin(spn) {
-	spin = spn;
-	updateGLSL();
+	updateFractalGLSL();
 }
 
 const DEFAULT_FRACTAL_COLOR = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4, orbitTrap.z * 0.9) + diffuse';
@@ -35,14 +29,13 @@ const DEFAULT_FRACTAL_COLOR_BRIGHT = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4,
 let MANDELBULB_GLSL;
 let SPHERE_SPONGE_GLSL;
 let MANDELBOX_GLSL;
-updateGLSL();
+updateFractalGLSL();
 
-function updateGLSL() {
+function updateFractalGLSL() {
 	MANDELBULB_GLSL = 
 `
 	vec4 orbitTrap = vec4(MAX_DIST);
 	float distanceFunction(vec3 position, bool isLight) {
-		${spin ? 'position = (vec4(position, 0.0) * rotateXaxis(PI / 2.0) * rotateZaxis(mod(uTime / 2.0, 2.0 * PI))).xyz;' : ''}
 		if(!isLight) orbitTrap = vec4(MAX_DIST);
 		vec3 z = position;
 		float dr = 1.0;
@@ -69,8 +62,7 @@ function updateGLSL() {
 `
 vec4 orbitTrap = vec4(MAX_DIST);
 float distanceFunction(vec3 position, bool isLight) {
-	${spin ? 'position = (vec4(position, 0.0) * rotateXaxis(PI / 2.0) * rotateZaxis(mod(uTime / 2.0, 2.0 * PI))).xyz;' : ''}
-    if(!isLight) orbitTrap = vec4(MAX_DIST);
+	if(!isLight) orbitTrap = vec4(MAX_DIST);
     float scale = 2.0;
     float spongeScale = 2.05;
     float k = scale;

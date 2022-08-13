@@ -7,6 +7,8 @@ let lightFunction = 'vec3(0, 15, 0)';
 let shadows = true;
 let reflectness = 0.5;
 let reflections = 0;
+let extra = '';
+let spin = false;
 
 const vertexShaderCode = `
 precision highp float;
@@ -36,6 +38,7 @@ ${TRANSFORMATIONS_GLSL}
 #DISTANCE_FUNCTION
 
 float sceneDE(vec3 position, bool isLight) {
+	#SPIN
 	return distanceFunction(position, isLight);
 }
 
@@ -75,6 +78,8 @@ float getLight(vec3 p) {
  
 	return diffuse;
 }
+
+#EXTRA
 
 void main() {
 	vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;

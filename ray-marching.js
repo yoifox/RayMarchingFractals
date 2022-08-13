@@ -18,6 +18,9 @@ function compile(distanceFunction) {
 	fragmentShaderCode = fragmentShaderCode.replace(/#LIGHT_FUNCTION/g, lightFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTNESS/g, reflectness.toFixed(5));
 	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTIONS/g, reflections);
+	fragmentShaderCode = fragmentShaderCode.replace(/#EXTRA/g, extra);
+	fragmentShaderCode = fragmentShaderCode.replace(/#SPIN/g, 
+			spin ? 'position = (vec4(position, 0.0) * rotateXaxis(PI / 2.0) * rotateZaxis(mod(uTime / 2.0, 2.0 * PI))).xyz;' : '');
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
 						!shadows ? '' : `
 						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true);

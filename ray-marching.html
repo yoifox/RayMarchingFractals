@@ -16,9 +16,15 @@
 			setPower(10);
 			setBailout(50);
 			setColorIterations(10);
-			setSpin(true);
+			spin = true;
 			reflections = 1;
 			colorFunction = DEFAULT_FRACTAL_COLOR;
+			extra = `
+			vec3 grad(vec2 uv, vec3 startColor, vec3 endColor) {
+				return mix(startColor, endColor, smoothstep(0.0, 1.0, uv.y + 0.5));
+			}
+			`;
+			skyColorFunction = 'grad(uv * 2.0, vec3(0.9, 0.9, 1), vec3(0.3, 0.3, 1))'
 		}
 	</script>
 	<canvas id="rm-canvas"></canvas>
