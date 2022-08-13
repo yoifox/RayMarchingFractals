@@ -23,8 +23,8 @@ function setColorIterations(colorItr) {
 	updateFractalGLSL();
 }
 
-const DEFAULT_FRACTAL_COLOR = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4, orbitTrap.z * 0.9) + diffuse';
-const DEFAULT_FRACTAL_COLOR_BRIGHT = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4, orbitTrap.z * 0.9) + diffuse + 0.2';
+const DEFAULT_FRACTAL_COLOR = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4, orbitTrap.z * 0.9) * orbitTrap.w + diffuse';
+const DEFAULT_FRACTAL_COLOR_BRIGHT = 'vec3(orbitTrap.x * 0.2, orbitTrap.y * 0.4, orbitTrap.z * 0.9) * orbitTrap.w + diffuse + 0.2';
 
 let MANDELBULB_GLSL;
 let SPHERE_SPONGE_GLSL;
@@ -52,7 +52,8 @@ function updateFractalGLSL() {
 			phi = phi * ${power.toFixed(5)};
 			z = zr * vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
 			z += position;
-			if (i < ${colorIterations} && !isLight) orbitTrap = min(orbitTrap,abs(vec4(z.x,z.y,z.z,r*r)));
+			if (i < ${colorIterations} && !isLight) 
+				orbitTrap = min(orbitTrap, abs(vec4(z.x, z.y, z.z, r*r)));
 		}
 		return 0.5*log(r)*r/dr;
 	}
@@ -66,8 +67,8 @@ float distanceFunction(vec3 position, bool isLight) {
     float scale = 2.0;
     float spongeScale = 2.05;
     float k = scale;
-    float d = -10000.0;
-    float d1, r, md = 100000.0, cd = 0.0;
+    float d = -MAX_DIST, md = MAX_DIST;
+    float d1, r;
 
     for (int i = 0; i < int(${iterations}); i++) {
         vec3 z = mod(position * k, 4.0) - vec3(0.5 * 4.0);
@@ -76,10 +77,9 @@ float distanceFunction(vec3 position, bool isLight) {
         k *= scale;
         d = max(d, d1);
         if (i < ${colorIterations} && !isLight) {
-            md = min(md, d);
-            cd = r;
-            orbitTrap = vec4(md*r, md*r, md*r, md*r);
-        }
+			md = min(md, d);
+            orbitTrap = vec4(md, md, md, r);
+		}
     }
     return d;
 }
