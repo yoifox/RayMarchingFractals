@@ -96,7 +96,7 @@ function update(delta) {
 	gl.uniform2f(uResolution, canvas.width, canvas.height);
 	gl.uniform1f(uTime, totalTime);
 	gl.uniform3f(uPosition, cameraPosition.x, cameraPosition.y, cameraPosition.z);
-	gl.uniform3f(uRotation, toRadians(cameraRotation.x), toRadians(cameraRotation.y), toRadians(cameraRotation.z));
+	gl.uniform3f(uRotation, toRadians(cameraRotation.x % 360), toRadians(cameraRotation.y % 360), toRadians(cameraRotation.z % 360));
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }

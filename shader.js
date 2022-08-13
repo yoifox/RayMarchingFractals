@@ -66,7 +66,6 @@ vec3 getNormal(vec3 p) {
 }
 
 float getLight(vec3 p) { 
-	//vec3 lightPos = vec3(15.0 * sin(uTime), 15.0, 15.0 * cos(uTime));
 	vec3 lightPos = #LIGHT_FUNCTION;
 	vec3 lightDir = normalize(lightPos-p);
 	vec3 normal = getNormal(p);
@@ -95,7 +94,7 @@ void main() {
 		vec3 normal;
 		if(i > 0) {
 			normal = getNormal(cameraPos);
-			rayDir = reflect(rayDir, normal) + uRotation / 2.0;
+			rayDir = reflect(rayDir, normal);
 		}
 		float distance = rayMarch(i > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false);
 		cameraPos += rayDir * distance;

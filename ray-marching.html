@@ -64,8 +64,8 @@ vec3 space(vec2 uv, float time, float speed)
 	return v * 0.01;	
 }	
 vec3 skyColor(vec2 uv, int i) {
-	if(i > 0) uv.y = 1.0 - uv.y;
-	return exp2((-uv.y + uRotation.x - length(uv - 0.0) / 4.0) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
+	float y = i == 0 ? (-uv.y + uRotation.x - length(uv) / 4.0) : (uv.y - uRotation.x - length(uv) / 4.0);
+	return exp2(y / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
 			+ space(i == 0 ? vec2(uv.x + uRotation.y, uv.y - uRotation.x) : -vec2(uv.x - uRotation.y, uv.y + uRotation.x), uTime, 0.001);
 }
 `;
