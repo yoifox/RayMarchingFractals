@@ -3,7 +3,7 @@ let maxSteps = 256;
 let minDistance = 0.01;
 let skyColorFunction = 'vec3(0, 0, 1)';
 let colorFunction = 'vec3(diffuse)';
-let lightFunction = 'vec3(0, 15, 0)';
+let lightFunction = 'vec3(0, -15, 0)';
 let shadows = true;
 let reflectness = 0.5;
 let reflections = 0;
@@ -89,6 +89,7 @@ void main() {
 	rayDir = (vec4(rayDir, 0.0) * rotateXYZ(uRotation)).xyz;
 	
 	vec3 fragColor;
+	bool isFirstSky = false;
 	
 	for(int i = 0; i < #REFLECTIONS + 1; i++) {
 		vec3 normal;
@@ -96,16 +97,21 @@ void main() {
 			normal = getNormal(cameraPos);
 			rayDir = reflect(rayDir, normal) + uRotation / 2.0;
 		}
-		float distance = rayMarch(i > 0 ? cameraPos + normal * MIN_DIST : cameraPos, rayDir, false);
+		float distance = rayMarch(i > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false);
 		cameraPos += rayDir * distance;
 		float diffuse = getLight(cameraPos);
 		vec3 color = #COLOR_FUNCTION;
-		if(distance > MAX_DIST)
+		if(distance > MAX_DIST) {
 			color = #SKY_COLOR_FUNCTION;
-		if(steps == MAX_STEPS) 
+			if(i == 0) isFirstSky = true;
+		}
+		if(steps == MAX_STEPS) {
 			color = #SKY_COLOR_FUNCTION;
+			if(i == 0) isFirstSky = true;
+		}
 		
-		if(i > 0) fragColor = mix(fragColor, color, #REFLECTNESS);
+		if(i > 0 && !isFirstSky) fragColor = mix(fragColor, color, #REFLECTNESS);
+		else if(i > 0);
 		else fragColor = color;
 	}
 	gl_FragColor = vec4(fragColor, 1.0);

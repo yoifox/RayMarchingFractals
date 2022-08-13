@@ -9,21 +9,23 @@
 			document.getElementById('rm-canvas').width = window.innerWidth;
 			document.getElementById('rm-canvas').height = window.innerHeight;
 			maxDistance = 1000.0;
-			maxSteps = 256;
+			maxSteps = 128;
 			minDistance = 0.01;
 			shadows = false;
-			setIterations(10);
+			setIterations(5);
 			setPower(10);
 			setBailout(50);
 			setColorIterations(10);
 			spin = true;
 			reflections = 1;
+			reflectness = 0.5;
 			colorFunction = DEFAULT_FRACTAL_COLOR;
-			skyColorFunction = 'skyColor(uv)';
+			skyColorFunction = 'skyColor(uv, i)';
+			
 			extra = `
-#define VOL_ITERATIONS 14
+#define VOL_ITERATIONS 15
 #define FORM_U_PARAM 0.53
-#define VOL_STEPS 10
+#define VOL_STEPS 5
 #define STEP_SIZE 0.1
 #define ZOOM 0.800
 #define TILE 0.850
@@ -60,11 +62,11 @@ vec3 space(vec2 uv, float time, float speed)
 	}
 	v = mix(vec3(length(v)), v, SATURATION);
 	return v * 0.01;	
-}
-			
-vec3 skyColor(vec2 uv) {
+}	
+vec3 skyColor(vec2 uv, int i) {
+	if(i > 0) uv.y = 1.0 - uv.y;
 	return exp2((-uv.y + uRotation.x - length(uv - 0.0) / 4.0) / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
-			+ space(vec2(uv.x + uRotation.y, uv.y - uRotation.x), uTime, 0.001);
+			+ space(i == 0 ? vec2(uv.x + uRotation.y, uv.y - uRotation.x) : -vec2(uv.x - uRotation.y, uv.y + uRotation.x), uTime, 0.001);
 }
 `;
 		}
