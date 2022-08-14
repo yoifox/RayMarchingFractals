@@ -37,17 +37,17 @@ ${TRANSFORMATIONS_GLSL}
 
 #DISTANCE_FUNCTION
 
-float sceneDE(vec3 position, bool isLight) {
+float sceneDE(vec3 position, bool isLight, bool isReflection) {
 	#SPIN
-	return distanceFunction(position, isLight);
+	return distanceFunction(position, isLight, isReflection);
 }
 
-float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight) {
+float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight, bool isReflection) {
 	float marchedDistance = 0.0;
 	for(int i = 0; i < MAX_STEPS; i++) {
 		steps = i;
 		vec3 p = rayPos + rayDir * marchedDistance;
-		float minDistance = sceneDE(p, isLight);
+		float minDistance = sceneDE(p, isLight, isReflection);
 		marchedDistance += minDistance;
 		if(marchedDistance > MAX_DIST || minDistance < MIN_DIST) 
 			break;
@@ -55,20 +55,20 @@ float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight) {
 	return marchedDistance;
 }
  
-vec3 getNormal(vec3 p) {
-	float distance = sceneDE(p, true);
+vec3 getNormal(vec3 p, bool isReflection) {
+	float distance = sceneDE(p, true, isReflection);
 	vec2 epsilon = vec2(0.01, 0);
 	vec3 n = distance - vec3(
-	sceneDE(p - epsilon.xyy, true),
-	sceneDE(p - epsilon.yxy, true),
-	sceneDE(p - epsilon.yyx, true));
+	sceneDE(p - epsilon.xyy, true, isReflection),
+	sceneDE(p - epsilon.yxy, true, isReflection),
+	sceneDE(p - epsilon.yyx, true, isReflection));
 	return normalize(n);
 }
 
-float getLight(vec3 p) { 
+float getLight(vec3 p, bool isReflection) { 
 	vec3 lightPos = #LIGHT_FUNCTION;
 	vec3 lightDir = normalize(lightPos-p);
-	vec3 normal = getNormal(p);
+	vec3 normal = getNormal(p, isReflection);
 	
 	float diffuse = dot(normal, lightDir);
 	diffuse = clamp(diffuse, 0.0, 1.0);
@@ -93,12 +93,12 @@ void main() {
 	for(int i = 0; i < #REFLECTIONS + 1; i++) {
 		vec3 normal;
 		if(i > 0) {
-			normal = getNormal(cameraPos);
+			normal = getNormal(cameraPos, true);
 			rayDir = reflect(rayDir, normal);
 		}
-		float distance = rayMarch(i > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false);
+		float distance = rayMarch(i > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false, i > 0);
 		cameraPos += rayDir * distance;
-		float diffuse = getLight(cameraPos);
+		float diffuse = getLight(cameraPos, i > 0);
 		vec3 color = #COLOR_FUNCTION;
 		if(distance > MAX_DIST) {
 			color = #SKY_COLOR_FUNCTION;

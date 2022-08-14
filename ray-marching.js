@@ -1,4 +1,4 @@
-let gl, canvas;
+let ctx2d, gl, canvas;
 let uPosition, uTime, uResolution, uRotation;
 let cameraPosition = {x: 0, y: 0, z: -3.5};
 let cameraRotation = {x: 0, y: 0, z: 0};
@@ -7,8 +7,12 @@ let moveSpeed = 0.01, lookSpeed = 0.25;
 let frameIntervalMS = 1;
 let moveOnlyWhenMouseInside = true;
 let mouseInside = false;
+let moving = false;
+let previewScale = 20;
+let canvasStartDimention = {};
 
 function compile(distanceFunction) {
+	
 	fragmentShaderCode = fragmentShaderCode.replace(/#DISTANCE_FUNCTION/g, distanceFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#COLOR_FUNCTION/g, colorFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SKY_COLOR_FUNCTION/g, skyColorFunction);
@@ -23,7 +27,7 @@ function compile(distanceFunction) {
 			spin ? 'position = (vec4(position, 0.0) * rotateXaxis(PI / 2.0) * rotateZaxis(mod(uTime / 2.0, 2.0 * PI))).xyz;' : '');
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
 						!shadows ? '' : `
-						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true);
+						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true, isReflection);
 						if(d < length(lightPos-p)) diffuse *= 0.1;
 						`);
 	
@@ -31,6 +35,9 @@ function compile(distanceFunction) {
 	gl = canvas.getContext('webgl');
 	if(!gl)
 		gl = canvas.getContext('experimental-webgl');
+	ctx2d = canvas.getContext('2d');
+	canvasStartDimention.x = canvas.width;
+	canvasStartDimention.y = canvas.height;
 
 	let vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -77,21 +84,40 @@ function compile(distanceFunction) {
 	
 	addEventListener('keydown', e => {
 		if(moveOnlyWhenMouseInside && !mouseInside) return;
+		setMoving();
 		keyPress(e)
 	});
 	
 	addEventListener('keyup', e => keyRelease(e));
-	canvas.addEventListener('mousemove', e => mouseMoveEvent = e);
+	window.addEventListener('mousemove', e => {mouseMoveEvent = e; if(isMousePressed) setMoving();});
 	canvas.addEventListener('mouseup', e => isMousePressed = false);
 	canvas.addEventListener('mousedown', e => isMousePressed = true);
 	canvas.onmouseenter = () => mouseInside = true;
 	canvas.onmouseout = () => mouseInside = false;
 };
 
+let moveStartTime;
+function setMoving() {
+	moving = true;
+	moveStartTime = totalTime;
+}
+
 let totalTime = 0;
 function update(delta) {
+	if(moving) {
+		canvas.width = window.innerWidth / previewScale;
+		canvas.height = window.innerHeight / previewScale;
+	}
+	if(mouseMoveEvent) cameraRotation = getNewRotation(cameraRotation, mouseMoveEvent, isMousePressed, lookSpeed * (window.innerWidth / canvasStartDimention.x));
+	if(!moving && !spin) return;
+	if(totalTime - moveStartTime > 1) {
+		moving = false;
+		moveStartTime = 0;
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	gl.viewport(0, 0, canvas.width, canvas.height);
 	cameraPosition = getNewPosition(cameraPosition, cameraRotation, moveSpeed);
-	if(mouseMoveEvent) cameraRotation = getNewRotation(cameraRotation, mouseMoveEvent, isMousePressed, lookSpeed);
 	totalTime += delta;
 	gl.uniform2f(uResolution, canvas.width, canvas.height);
 	gl.uniform1f(uTime, totalTime);
@@ -99,4 +125,5 @@ function update(delta) {
 	gl.uniform3f(uRotation, toRadians(cameraRotation.x % 360), toRadians(cameraRotation.y % 360), toRadians(cameraRotation.z % 360));
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+	console.log(prevMouseX, prevMouseY);
 }

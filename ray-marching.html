@@ -5,29 +5,38 @@
 <script src="ray-marching.js"></script>
 <body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBULB_GLSL);">
 	<script>
+	let df = `
+	float distanceFunction(vec3 position, bool isLight, bool isReflection) {
+		float s1 = length(position) - 0.5;
+		float s2 = length(position - vec3(1)) - 0.5;
+		return min(s1, s2);
+	}
+	`;
 		function initCanvas() {
 			document.getElementById('rm-canvas').width = window.innerWidth;
 			document.getElementById('rm-canvas').height = window.innerHeight;
-			maxDistance = 1000.0;
-			maxSteps = 128;
+			document.getElementById('rm-canvas').style.width = window.innerWidth;
+			document.getElementById('rm-canvas').style.height = window.innerHeight;
+			maxDistance = 10000.0;
+			maxSteps = 256;
 			minDistance = 0.01;
 			shadows = true;
-			setIterations(10);
+			setIterations(4);
 			setPower(10);
 			setBailout(50);
-			setColorIterations(10);
-			spin = true;
+			setColorIterations(2);
+			spin = false;
 			reflections = 1;
 			reflectness = 0.5;
-			colorFunction = DEFAULT_FRACTAL_COLOR;
+			colorFunction = DEFAULT_FRACTAL_COLOR + '+ 0.5';
 			skyColorFunction = 'skyColor(uv, i, rayDir)';
 			
 			extra = `
-#define VOL_ITERATIONS 15
+#define VOL_ITERATIONS 4
 #define FORM_U_PARAM 0.53
 #define VOL_STEPS 5
-#define STEP_SIZE 0.1
-#define ZOOM 0.800
+#define STEP_SIZE 0.2
+#define ZOOM 4.800
 #define TILE 0.850
 #define BRIGHTNESS 0.0015
 #define DARK_MATTER 0.300
@@ -64,7 +73,7 @@ vec3 space(vec2 uv, float time, float speed)
 	return v * 0.01;	
 }	
 vec3 skyColor(vec2 uv, int i, vec3 rayDir) {
-	float y = i == 0 ? (-uv.y + uRotation.x - length(uv) / 4.0) : (-rayDir.y - length(uv) / 4.0);
+	float y = i == 0 ? (-uv.y + uRotation.x - length(uv - vec2(0.0, -0.5)) / 4.0) : (-rayDir.y - length(uv) / 4.0);
 	return exp2(y / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
 			+ space(i == 0 ? vec2(uv.x + uRotation.y, uv.y - uRotation.x) : -vec2(uv.x - uRotation.y, uv.y + uRotation.x), uTime, 0.001);
 }
