@@ -37,17 +37,17 @@ ${TRANSFORMATIONS_GLSL}
 
 #DISTANCE_FUNCTION
 
-float sceneDE(vec3 position, bool isLight) {
+float sceneDE(vec3 position, bool isLight, int reflectionIndex) {
 	#SPIN
-	return distanceFunction(position, isLight);
+	return distanceFunction(position, isLight, reflectionIndex);
 }
 
-float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight) {
+float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight, int reflectionIndex) {
 	float marchedDistance = 0.0;
 	for(int i = 0; i < MAX_STEPS; i++) {
 		steps = i;
 		vec3 p = rayPos + rayDir * marchedDistance;
-		float minDistance = sceneDE(p, isLight);
+		float minDistance = sceneDE(p, isLight, reflectionIndex);
 		marchedDistance += minDistance;
 		if(marchedDistance > MAX_DIST || minDistance < MIN_DIST) 
 			break;
@@ -55,20 +55,20 @@ float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight) {
 	return marchedDistance;
 }
  
-vec3 getNormal(vec3 p) {
-	float distance = sceneDE(p, true);
+vec3 getNormal(vec3 p, int reflectionIndex) {
+	float distance = sceneDE(p, true, reflectionIndex);
 	vec2 epsilon = vec2(0.01, 0);
 	vec3 n = distance - vec3(
-	sceneDE(p - epsilon.xyy, true),
-	sceneDE(p - epsilon.yxy, true),
-	sceneDE(p - epsilon.yyx, true));
+	sceneDE(p - epsilon.xyy, true, reflectionIndex),
+	sceneDE(p - epsilon.yxy, true, reflectionIndex),
+	sceneDE(p - epsilon.yyx, true, reflectionIndex));
 	return normalize(n);
 }
 
-float getLight(vec3 p) { 
+float getLight(vec3 p, int reflectionIndex) { 
 	vec3 lightPos = #LIGHT_FUNCTION;
 	vec3 lightDir = normalize(lightPos-p);
-	vec3 normal = getNormal(p);
+	vec3 normal = getNormal(p, reflectionIndex);
 	
 	float diffuse = dot(normal, lightDir);
 	diffuse = clamp(diffuse, 0.0, 1.0);
@@ -90,27 +90,27 @@ void main() {
 	vec3 fragColor;
 	bool isFirstSky = false;
 	
-	for(int i = 0; i < #REFLECTIONS + 1; i++) {
+	for(int reflection = 0; reflection < #REFLECTIONS + 1; reflection++) {
 		vec3 normal;
-		if(i > 0) {
-			normal = getNormal(cameraPos);
+		if(reflection > 0) {
+			normal = getNormal(cameraPos, reflection);
 			rayDir = reflect(rayDir, normal);
 		}
-		float distance = rayMarch(i > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false);
+		float distance = rayMarch(reflection > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false, reflection);
 		cameraPos += rayDir * distance;
-		float diffuse = getLight(cameraPos);
+		float diffuse = getLight(cameraPos, reflection);
 		vec3 color = #COLOR_FUNCTION;
 		if(distance > MAX_DIST) {
 			color = #SKY_COLOR_FUNCTION;
-			if(i == 0) isFirstSky = true;
+			if(reflection == 0) isFirstSky = true;
 		}
 		if(steps == MAX_STEPS) {
 			color = #SKY_COLOR_FUNCTION;
-			if(i == 0) isFirstSky = true;
+			if(reflection == 0) isFirstSky = true;
 		}
 		
-		if(i > 0 && !isFirstSky) fragColor = mix(fragColor, color, #REFLECTNESS);
-		else if(i > 0);
+		if(reflection > 0 && !isFirstSky) fragColor = mix(fragColor, color, #REFLECTNESS);
+		else if(reflection > 0);
 		else fragColor = color;
 	}
 	gl_FragColor = vec4(fragColor, 1.0);

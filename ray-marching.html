@@ -3,36 +3,42 @@
 <script src="shader.js"></script>
 <script src="input.js"></script>
 <script src="ray-marching.js"></script>
-<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBULB_GLSL);">
+<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBOX_GLSL);">
 	<script>
 		function initCanvas() {
 			document.getElementById('rm-canvas').width = window.innerWidth;
 			document.getElementById('rm-canvas').height = window.innerHeight;
+			document.getElementById('rm-canvas').style.width = window.innerWidth;
+			document.getElementById('rm-canvas').style.height = window.innerHeight;
 			maxDistance = 1000.0;
 			maxSteps = 128;
 			minDistance = 0.01;
-			shadows = true;
-			setIterations(10);
+			shadows = false;
+			setIterations(7);
 			setPower(10);
 			setBailout(50);
-			setColorIterations(10);
+			setColorIterations(2);
 			spin = true;
 			reflections = 1;
 			reflectness = 0.5;
-			colorFunction = DEFAULT_FRACTAL_COLOR;
-			skyColorFunction = 'skyColor(uv, i, rayDir)';
+			previewScale = 1;
+			pauseWhenNotMoving = false;
+			colorFunction = DEFAULT_FRACTAL_COLOR + '+ 0.5';
+			skyColorFunction = 'skyColor(uv, reflection, rayDir)';
+			cameraPosition = {x: -10, y: 7, z: -10};
+			cameraRotation = {x: 30, y: 45, z: 0};
 			
 			extra = `
-#define VOL_ITERATIONS 15
+#define VOL_ITERATIONS 20
 #define FORM_U_PARAM 0.53
 #define VOL_STEPS 5
-#define STEP_SIZE 0.1
-#define ZOOM 0.800
-#define TILE 0.850
+#define STEP_SIZE 0.2
+#define ZOOM 1.0
+#define TILE 0.85
 #define BRIGHTNESS 0.0015
-#define DARK_MATTER 0.300
-#define DIST_FADING 0.730
-#define SATURATION 0.850
+#define DARK_MATTER 0.3
+#define DIST_FADING 0.73
+#define SATURATION 0.85
 
 vec3 space(vec2 uv, float time, float speed)
 {
@@ -63,10 +69,11 @@ vec3 space(vec2 uv, float time, float speed)
 	v = mix(vec3(length(v)), v, SATURATION);
 	return v * 0.01;	
 }	
-vec3 skyColor(vec2 uv, int i, vec3 rayDir) {
-	float y = i == 0 ? (-uv.y + uRotation.x - length(uv) / 4.0) : (-rayDir.y - length(uv) / 4.0);
+vec3 skyColor(vec2 uv, int reflection, vec3 rayDir) {
+	uv.y += 0.25;
+	float y = reflection == 0 ? (-uv.y + uRotation.x - length(uv - vec2(0.0, -1.0)) / 4.0) : (-rayDir.y - length(uv) / 4.0);
 	return exp2(y / vec3(0.1, 0.3, 0.6)) - vec3(0, 0.4, 0.4)
-			+ space(i == 0 ? vec2(uv.x + uRotation.y, uv.y - uRotation.x) : -vec2(uv.x - uRotation.y, uv.y + uRotation.x), uTime, 0.001);
+			+ space(reflection == 0 ? vec2(uv.x + uRotation.y, uv.y - uRotation.x) : -vec2(uv.x - uRotation.y, uv.y + uRotation.x), uTime, 0.001);
 }
 `;
 		}

@@ -35,7 +35,8 @@ function updateFractalGLSL() {
 	MANDELBULB_GLSL = 
 `
 	vec4 orbitTrap = vec4(MAX_DIST);
-	float distanceFunction(vec3 position, bool isLight) {
+	float distanceFunction(vec3 position, bool isLight, int reflectionIndex) {
+		position *= mat3(rotateXaxis(PI / 2.0));
 		if(!isLight) orbitTrap = vec4(MAX_DIST);
 		vec3 z = position;
 		float dr = 1.0;
@@ -62,7 +63,7 @@ function updateFractalGLSL() {
 	SPHERE_SPONGE_GLSL =
 `
 vec4 orbitTrap = vec4(MAX_DIST);
-float distanceFunction(vec3 position, bool isLight) {
+float distanceFunction(vec3 position, bool isLight, int reflectionIndex) {
 	if(!isLight) orbitTrap = vec4(MAX_DIST);
     float scale = 2.0;
     float spongeScale = 2.05;
@@ -88,7 +89,7 @@ float distanceFunction(vec3 position, bool isLight) {
 	MANDELBOX_GLSL = 
 `
 vec4 orbitTrap = vec4(MAX_DIST);
-float distanceFunction(vec3 pos, bool isLight) {
+float distanceFunction(vec3 pos, bool isLight, int reflectionIndex) {
     if(!isLight) orbitTrap = vec4(MAX_DIST);
     float scale = 2.8;
     float MR2 = 0.2;
