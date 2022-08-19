@@ -9,11 +9,12 @@ let reflectness = 0.5;
 let reflections = 0;
 let extra = '';
 let spin = false;
+let minDistanceFactor = 0.001;
+let dynamicMinDistance = true;
 
 const vertexShaderCode = `
 precision highp float;
 attribute vec2 position;
-
 void main() {
 	gl_Position = vec4(position, 0, 1);
 }
@@ -24,44 +25,43 @@ let fragmentShaderCode = `
 #define MAX_STEPS #MAX_STEPS
 #define MAX_DIST #MAX_DISTANCE
 #define MIN_DIST #MIN_DISTANCE
-
 precision highp float;
 uniform vec2 uResolution;
 uniform float uTime;
 uniform vec3 uPosition;
 uniform vec3 uRotation;
-
 int steps = 0;
-
 ${TRANSFORMATIONS_GLSL}
 
 #DISTANCE_FUNCTION
-
 float sceneDE(vec3 position, bool isLight, int reflectionIndex) {
 	#SPIN
 	return distanceFunction(position, isLight, reflectionIndex);
 }
 
+float minDistance = MIN_DIST;
 float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight, int reflectionIndex) {
 	float marchedDistance = 0.0;
 	for(int i = 0; i < MAX_STEPS; i++) {
 		steps = i;
 		vec3 p = rayPos + rayDir * marchedDistance;
-		float minDistance = sceneDE(p, isLight, reflectionIndex);
-		marchedDistance += minDistance;
-		if(marchedDistance > MAX_DIST || minDistance < MIN_DIST) 
+		float distance = sceneDE(p, isLight, reflectionIndex);
+		if(#DYNAMIC_MIN_DIST)
+			minDistance = marchedDistance * #MIN_DIST_FACTOR;
+		marchedDistance += distance;
+		if(marchedDistance > MAX_DIST || distance < minDistance)
 			break;
 	}
 	return marchedDistance;
 }
- 
+
 vec3 getNormal(vec3 p, int reflectionIndex) {
 	float distance = sceneDE(p, true, reflectionIndex);
-	vec2 epsilon = vec2(0.01, 0);
+	vec2 epsilon = vec2(minDistance, 0);
 	vec3 n = distance - vec3(
-	sceneDE(p - epsilon.xyy, true, reflectionIndex),
-	sceneDE(p - epsilon.yxy, true, reflectionIndex),
-	sceneDE(p - epsilon.yyx, true, reflectionIndex));
+		sceneDE(p - epsilon.xyy, true, reflectionIndex),
+		sceneDE(p - epsilon.xyx, true, reflectionIndex),
+		sceneDE(p - epsilon.yyx, true, reflectionIndex));
 	return normalize(n);
 }
 
@@ -85,7 +85,7 @@ void main() {
 	
 	vec3 cameraPos = uPosition;
 	vec3 rayDir = normalize(vec3(uv.x, uv.y, 1));
-	rayDir = (vec4(rayDir, 0.0) * rotateXYZ(uRotation)).xyz;
+	rayDir = rayDir * mat3(rotateXYZ(uRotation));
 	
 	vec3 fragColor;
 	bool isFirstSky = false;
@@ -104,7 +104,7 @@ void main() {
 			color = #SKY_COLOR_FUNCTION;
 			if(reflection == 0) isFirstSky = true;
 		}
-		if(steps == MAX_STEPS) {
+		else if(steps == MAX_STEPS) {
 			color = #SKY_COLOR_FUNCTION;
 			if(reflection == 0) isFirstSky = true;
 		}

@@ -10,26 +10,27 @@
 			document.getElementById('rm-canvas').height = window.innerHeight;
 			document.getElementById('rm-canvas').style.width = window.innerWidth;
 			document.getElementById('rm-canvas').style.height = window.innerHeight;
-			maxDistance = 1000.0;
-			maxSteps = 128;
+			maxDistance = 40.0;
 			minDistance = 0.01;
+			maxSteps = 5000;
 			shadows = false;
-			setIterations(7);
+			setIterations(15);
 			setPower(10);
 			setBailout(50);
-			setColorIterations(2);
-			spin = true;
-			reflections = 1;
+			setColorIterations(15);
+			spin = false;
+			reflections = 0;
 			reflectness = 0.5;
-			previewScale = 1;
-			pauseWhenNotMoving = false;
-			colorFunction = DEFAULT_FRACTAL_COLOR + '+ 0.5';
+			previewScale = 1.0;
+			pauseWhenNotMoving = true;
+			lightFunction = 'vec3(0, -15, 0)';
+			colorFunction = DEFAULT_FRACTAL_COLOR + '';
 			skyColorFunction = 'skyColor(uv, reflection, rayDir)';
 			cameraPosition = {x: -10, y: 7, z: -10};
 			cameraRotation = {x: 30, y: 45, z: 0};
 			
 			extra = `
-#define VOL_ITERATIONS 20
+#define VOL_ITERATIONS 15
 #define FORM_U_PARAM 0.53
 #define VOL_STEPS 5
 #define STEP_SIZE 0.2
@@ -40,8 +41,7 @@
 #define DIST_FADING 0.73
 #define SATURATION 0.85
 
-vec3 space(vec2 uv, float time, float speed)
-{
+vec3 space(vec2 uv, float time, float speed) {
 	uv -= 0.5;
 	vec3 dir = vec3(uv * ZOOM, 1.0);
 	time = time * speed + 0.25;

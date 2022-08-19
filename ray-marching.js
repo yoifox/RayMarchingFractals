@@ -7,7 +7,7 @@ let moveSpeed = 0.01, lookSpeed = 0.25;
 let frameIntervalMS = 1;
 let moveOnlyWhenMouseInside = true;
 let mouseInside = false;
-let moving = false;
+let moving = true;
 let previewScale = 4;
 let pauseWhenNotMoving = true;
 let canvasStartDimention = {};
@@ -17,13 +17,15 @@ function compile(distanceFunction) {
 	fragmentShaderCode = fragmentShaderCode.replace(/#DISTANCE_FUNCTION/g, distanceFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#COLOR_FUNCTION/g, colorFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SKY_COLOR_FUNCTION/g, skyColorFunction);
-	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_DISTANCE/g, maxDistance.toFixed(5));
-	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DISTANCE/g, minDistance.toFixed(5));
+	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_DISTANCE/g, maxDistance.toFixed(8));
+	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DISTANCE/g, minDistance.toFixed(8));
 	fragmentShaderCode = fragmentShaderCode.replace(/#MAX_STEPS/g, maxSteps);
 	fragmentShaderCode = fragmentShaderCode.replace(/#LIGHT_FUNCTION/g, lightFunction);
-	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTNESS/g, reflectness.toFixed(5));
+	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTNESS/g, reflectness.toFixed(8));
 	fragmentShaderCode = fragmentShaderCode.replace(/#REFLECTIONS/g, reflections);
 	fragmentShaderCode = fragmentShaderCode.replace(/#EXTRA/g, extra);
+	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DIST_FACTOR/g, minDistanceFactor.toFixed(8));
+	fragmentShaderCode = fragmentShaderCode.replace(/#DYNAMIC_MIN_DIST/g, dynamicMinDistance);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SPIN/g, 
 			spin ? 'position *= mat3(rotateYaxis(mod(uTime / 2.0, 2.0 * PI)));' : '');
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
@@ -95,6 +97,12 @@ function compile(distanceFunction) {
 	canvas.addEventListener('mousedown', e => isMousePressed = true);
 	canvas.onmouseenter = () => mouseInside = true;
 	canvas.onmouseout = () => mouseInside = false;
+	
+	canvas.addEventListener('mousewheel', e => {
+		let delta = e.deltaY / 40.0;
+		if(delta < 0) moveSpeed *= Math.abs(delta);
+		else moveSpeed /= Math.abs(delta);
+	});
 };
 
 let moveStartTime;
