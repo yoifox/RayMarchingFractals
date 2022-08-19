@@ -64,7 +64,7 @@ vec3 getNormal(vec3 p, int reflectionIndex) {
 	vec2 epsilon = vec2(minDistance, 0);
 	vec3 n = distance - vec3(
 		sceneDE(p - epsilon.xyy, true, reflectionIndex),
-		sceneDE(p - epsilon.xyx, true, reflectionIndex),
+		sceneDE(p - epsilon.yxy, true, reflectionIndex),
 		sceneDE(p - epsilon.yyx, true, reflectionIndex));
 	return normalize(n);
 }
@@ -100,7 +100,7 @@ void main() {
 			normal = getNormal(cameraPos, reflection);
 			if(reflection > 0) rayDir = reflect(rayDir, normal);
 		}
-		float distance = rayMarch(reflection > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false, reflection);
+		float distance = rayMarch(reflection > 0 ? cameraPos + normal * (1.5 * minDistance) : cameraPos, rayDir, false, reflection);
 		cameraPos += rayDir * distance;
 		float diffuse = getLight(cameraPos, reflection);
 		vec3 color = #COLOR_FUNCTION;

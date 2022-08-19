@@ -3,29 +3,36 @@
 <script src="shader.js"></script>
 <script src="input.js"></script>
 <script src="ray-marching.js"></script>
-<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(SPHERE_SPONGE_GLSL);">
+<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBOX_GLSL);">
 	<script>
+		let df = `
+			float distanceFunction(vec3 position, bool isLight, int reflection) {
+				float s1 = length(position) - 0.5;
+				float s2 = length(position - 1.0) - 0.5;
+				return min(s1, s2);
+			}
+		`;
 		function initCanvas() {
 			document.getElementById('rm-canvas').width = window.innerWidth;
 			document.getElementById('rm-canvas').height = window.innerHeight;
 			document.getElementById('rm-canvas').style.width = window.innerWidth;
 			document.getElementById('rm-canvas').style.height = window.innerHeight;
 			maxDistance = 50.0;
-			minDistance = 0.1;
+			minDistance = 0.01;
 			maxSteps = 5000;
 			shadows = true;
-			setIterations(8);
+			setIterations(15);
 			setPower(10);
 			setBailout(50);
-			setColorIterations(8);
+			setColorIterations(15);
 			spin = false;
 			reflections = 0;
 			reflectness = 0.5;
-			previewScale = 2.0;
+			previewScale = 4.0;
 			calcNormal = true;
 			pauseWhenNotMoving = true;
-			lightFunction = 'vec3(-10, 7, -10)';
-			colorFunction = DEFAULT_FRACTAL_COLOR + ' + 0.5';
+			lightFunction = 'vec3(0, -40, 0)';
+			colorFunction = DEFAULT_FRACTAL_COLOR;
 			skyColorFunction = 'skyColor(uv, reflection, rayDir)';
 			cameraPosition = {x: -10, y: 7, z: -10};
 			cameraRotation = {x: 30, y: 45, z: 0};
