@@ -11,6 +11,7 @@ let extra = '';
 let spin = false;
 let minDistanceFactor = 0.001;
 let dynamicMinDistance = true;
+let calcNormal = false;
 
 const vertexShaderCode = `
 precision highp float;
@@ -40,17 +41,20 @@ float sceneDE(vec3 position, bool isLight, int reflectionIndex) {
 }
 
 float minDistance = MIN_DIST;
+float lastDistance = 0.0;
 float rayMarch(vec3 rayPos, vec3 rayDir, bool isLight, int reflectionIndex) {
 	float marchedDistance = 0.0;
 	for(int i = 0; i < MAX_STEPS; i++) {
 		steps = i;
 		vec3 p = rayPos + rayDir * marchedDistance;
 		float distance = sceneDE(p, isLight, reflectionIndex);
-		if(#DYNAMIC_MIN_DIST)
+		if(#DYNAMIC_MIN_DIST && !isLight)
 			minDistance = marchedDistance * #MIN_DIST_FACTOR;
 		marchedDistance += distance;
-		if(marchedDistance > MAX_DIST || distance < minDistance)
+		if(marchedDistance > MAX_DIST || distance < minDistance) {
+			lastDistance = distance;
 			break;
+		}
 	}
 	return marchedDistance;
 }
@@ -92,9 +96,9 @@ void main() {
 	
 	for(int reflection = 0; reflection < #REFLECTIONS + 1; reflection++) {
 		vec3 normal;
-		if(reflection > 0) {
+		if(reflection > 0 || #CALC_NORMAL) {
 			normal = getNormal(cameraPos, reflection);
-			rayDir = reflect(rayDir, normal);
+			if(reflection > 0) rayDir = reflect(rayDir, normal);
 		}
 		float distance = rayMarch(reflection > 0 ? cameraPos + normal * (1.5 * MIN_DIST) : cameraPos, rayDir, false, reflection);
 		cameraPos += rayDir * distance;

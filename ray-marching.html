@@ -3,28 +3,29 @@
 <script src="shader.js"></script>
 <script src="input.js"></script>
 <script src="ray-marching.js"></script>
-<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(MANDELBOX_GLSL);">
+<body style="overflow: hidden; margin:0px" onload="initCanvas();compile(SPHERE_SPONGE_GLSL);">
 	<script>
 		function initCanvas() {
 			document.getElementById('rm-canvas').width = window.innerWidth;
 			document.getElementById('rm-canvas').height = window.innerHeight;
 			document.getElementById('rm-canvas').style.width = window.innerWidth;
 			document.getElementById('rm-canvas').style.height = window.innerHeight;
-			maxDistance = 40.0;
-			minDistance = 0.01;
+			maxDistance = 50.0;
+			minDistance = 0.1;
 			maxSteps = 5000;
-			shadows = false;
-			setIterations(15);
+			shadows = true;
+			setIterations(8);
 			setPower(10);
 			setBailout(50);
-			setColorIterations(15);
+			setColorIterations(8);
 			spin = false;
-			reflections = 1;
+			reflections = 0;
 			reflectness = 0.5;
-			previewScale = 4.0;
+			previewScale = 2.0;
+			calcNormal = true;
 			pauseWhenNotMoving = true;
-			lightFunction = 'vec3(0, -15, 0)';
-			colorFunction = DEFAULT_FRACTAL_COLOR + '';
+			lightFunction = 'vec3(-10, 7, -10)';
+			colorFunction = DEFAULT_FRACTAL_COLOR + ' + 0.5';
 			skyColorFunction = 'skyColor(uv, reflection, rayDir)';
 			cameraPosition = {x: -10, y: 7, z: -10};
 			cameraRotation = {x: 30, y: 45, z: 0};

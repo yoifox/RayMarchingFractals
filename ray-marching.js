@@ -9,6 +9,7 @@ let moveOnlyWhenMouseInside = true;
 let mouseInside = false;
 let moving = false;
 let previewScale = 4;
+let mouseWheelFactor = 1.5;
 let pauseWhenNotMoving = true;
 let canvasStartDimention = {};
 
@@ -26,6 +27,7 @@ function compile(distanceFunction) {
 	fragmentShaderCode = fragmentShaderCode.replace(/#EXTRA/g, extra);
 	fragmentShaderCode = fragmentShaderCode.replace(/#MIN_DIST_FACTOR/g, minDistanceFactor.toFixed(8));
 	fragmentShaderCode = fragmentShaderCode.replace(/#DYNAMIC_MIN_DIST/g, dynamicMinDistance);
+	fragmentShaderCode = fragmentShaderCode.replace(/#CALC_NORMAL/g, calcNormal);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SPIN/g, 
 			spin ? 'position *= mat3(rotateYaxis(mod(uTime / 2.0, 2.0 * PI)));' : '');
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
@@ -100,8 +102,8 @@ function compile(distanceFunction) {
 	
 	canvas.addEventListener('mousewheel', e => {
 		let delta = e.deltaY / 40.0;
-		if(delta < 0) moveSpeed *= Math.abs(delta);
-		else moveSpeed /= Math.abs(delta);
+		if(delta < 0) moveSpeed *= mouseWheelFactor;
+		else moveSpeed /= mouseWheelFactor;
 	});
 };
 
