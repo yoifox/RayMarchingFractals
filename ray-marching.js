@@ -7,13 +7,13 @@ let moveSpeed = 0.01, lookSpeed = 0.25;
 let frameIntervalMS = 1;
 let moveOnlyWhenMouseInside = true;
 let mouseInside = false;
-let moving = true;
+let moving = false;
 let previewScale = 4;
 let pauseWhenNotMoving = true;
 let canvasStartDimention = {};
 
 function compile(distanceFunction) {
-	
+	setMoving();
 	fragmentShaderCode = fragmentShaderCode.replace(/#DISTANCE_FUNCTION/g, distanceFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#COLOR_FUNCTION/g, colorFunction);
 	fragmentShaderCode = fragmentShaderCode.replace(/#SKY_COLOR_FUNCTION/g, skyColorFunction);
