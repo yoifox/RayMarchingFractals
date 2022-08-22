@@ -12,6 +12,7 @@ let spin = false;
 let minDistanceFactor = 0.001;
 let dynamicMinDistance = true;
 let calcNormal = false;
+let shadowStrength = 0.9;
 
 const vertexShaderCode = `
 precision highp float;

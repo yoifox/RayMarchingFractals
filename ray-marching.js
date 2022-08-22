@@ -12,6 +12,7 @@ let previewScale = 4;
 let mouseWheelFactor = 1.5;
 let pauseWhenNotMoving = true;
 let canvasStartDimention = {};
+let doEveryFrame = function(){};
 
 function compile(distanceFunction) {
 	setMoving();
@@ -32,8 +33,8 @@ function compile(distanceFunction) {
 			spin ? 'position *= mat3(rotateYaxis(mod(uTime / 2.0, 2.0 * PI)));' : '');
 	fragmentShaderCode = fragmentShaderCode.replace(/#SHADOWS/g, 
 						!shadows ? '' : `
-						float d = rayMarch(p + normal * MIN_DIST * 2.0, lightDir, true, reflectionIndex);
-						if(d < length(lightPos-p)) diffuse *= 0.1;
+						float d = rayMarch(p + normal * minDistance * 2.0, lightDir, true, reflectionIndex);
+						if(d < length(lightPos-p)) diffuse *= ${1 - shadowStrength};
 						`);
 	
 	canvas = document.getElementById('rm-canvas');
@@ -135,6 +136,7 @@ function update(delta) {
 	gl.uniform1f(uTime, totalTime);
 	gl.uniform3f(uPosition, cameraPosition.x, cameraPosition.y, cameraPosition.z);
 	gl.uniform3f(uRotation, toRadians(cameraRotation.x % 360), toRadians(cameraRotation.y % 360), toRadians(cameraRotation.z % 360));
+	doEveryFrame();
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
